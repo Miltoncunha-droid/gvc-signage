@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GVC — Vendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+  width: 100vw; height: 100vh;
+  display: flex; flex-direction: column;
+  overflow: hidden; user-select: none;
+}
+.header { display:flex; align-items:center; padding:28px 56px 16px; gap:28px; flex-shrink:0; }
+.logo { height:80px; width:auto; object-fit:contain; flex-shrink:0; }
+.title-pill {
+  background:#1DB88A; color:#fff;
+  font-size:56px; font-weight:900; letter-spacing:.06em;
+  padding:14px 0; border-radius:18px; flex:1; text-align:center;
+}
+.subtitle { text-align:center; padding:10px 56px 8px; flex-shrink:0; }
+.subtitle h2 { font-size:40px; font-weight:700; color:#0F6E56; line-height:1.3; }
+.bar-section { margin:8px 56px; flex-shrink:0; }
+.bar {
+  background:#1DB88A; border-radius:20px;
+  display:flex; align-items:center; justify-content:center;
+  padding:22px 40px;
+}
+.bar-value { color:#fff; font-size:96px; font-weight:900; letter-spacing:-.02em; line-height:1; }
+.progress-section { margin:10px 56px 4px; flex-shrink:0; }
+.progress-bg { background:#E1F5EE; border-radius:10px; height:18px; overflow:hidden; }
+.progress-fill { height:100%; background:#1DB88A; border-radius:10px; transition:width 1.2s ease; width:0%; }
+.progress-label {
+  display:flex; justify-content:space-between; margin-top:5px;
+  font-size:18px; font-weight:600; color:#0F6E56; padding:0 2px;
+}
+.meta-label { text-align:center; font-size:36px; font-weight:700; color:#0F6E56; padding:10px 56px 6px; flex-shrink:0; }
+.meta-bar {
+  margin:0 56px;
+  background:#fff; border:5px solid #1DB88A; border-radius:20px;
+  display:flex; align-items:center; justify-content:center;
+  padding:18px 40px; flex-shrink:0;
+}
+.meta-bar .bar-value { color:#0F6E56; font-size:88px; }
+.footer {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 56px 12px; flex-shrink:0; margin-top:auto;
+}
+.footer-status { font-size:16px; color:#aaa; display:flex; align-items:center; gap:7px; }
+.sdot { width:8px; height:8px; border-radius:50%; background:#1DB88A; box-shadow:0 0 6px #1DB88A; display:inline-block; }
+.sdot.err { background:#E53E3E; box-shadow:0 0 6px #E53E3E; }
+.footer-config { font-size:15px; color:#ccc; cursor:pointer; }
+.footer-config:hover { color:#1DB88A; }
+.cfg-ov {
+  position:fixed; inset:0; background:rgba(0,0,0,.55);
+  display:flex; align-items:center; justify-content:center;
+  z-index:100; backdrop-filter:blur(4px);
+}
+.cfg-box { background:#fff; border-radius:18px; padding:32px; width:400px; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.cfg-box h3 { font-size:18px; font-weight:700; color:#1A2740; margin-bottom:20px; }
+.cfg-field { margin-bottom:16px; }
+.cfg-field label { display:block; font-size:13px; font-weight:600; color:#6B7C93; margin-bottom:5px; }
+.cfg-field input {
+  width:100%; padding:10px 13px; border:1.5px solid #E2E8F0; border-radius:9px;
+  font-size:15px; font-family:inherit; color:#1A2740;
+}
+.cfg-field input:focus { outline:none; border-color:#1DB88A; }
+.cfg-btns { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+.cbtn { padding:9px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; border:none; font-family:inherit; }
+.cbtn-g { background:#1DB88A; color:#fff; }
+.cbtn-g:hover { background:#0F6E56; }
+.cbtn-c { background:#F0F4F8; color:#6B7C93; }
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img class="logo" src="https://res.cloudinary.com/dbzqk5wif/image/upload/v1775303727/gvc-signage/kjwc7gmgtstjwe9uyg6x.png" alt="GVC">
+  <div class="title-pill">VENDAS</div>
+</div>
+
+<div class="subtitle">
+  <h2 id="subtitle-text">Carregando...</h2>
+</div>
+
+<div class="bar-section">
+  <div class="bar"><div class="bar-value" id="fat-value">R$ —</div></div>
+</div>
+
+<div class="progress-section">
+  <div class="progress-bg"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="progress-label">
+    <span id="prog-pct">0%</span>
+    <span id="prog-rest"></span>
+  </div>
+</div>
+
+<div class="meta-label">Meta Mensal</div>
+
+<div class="meta-bar">
+  <div class="bar-value" id="meta-value">R$ —</div>
+</div>
+
+<div class="footer">
+  <div class="footer-status">
+    <span class="sdot" id="sdot"></span>
+    <span id="status-text">Conectando...</span>
+  </div>
+  <div class="footer-config" onclick="openCfg()">⚙ configurar</div>
+</div>
+
+<div class="cfg-ov hidden" id="cfg-ov">
+  <div class="cfg-box">
+    <h3>⚙ Configurações do Slide</h3>
+    <div class="cfg-field">
+      <label>Meta Mensal (R$)</label>
+      <input type="number" id="cfg-meta" placeholder="335000">
+    </div>
+    <div class="cfg-btns">
+      <button class="cbtn cbtn-c" onclick="closeCfg()">Cancelar</button>
+      <button class="cbtn cbtn-g" onclick="saveCfg()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Configuração ──
+const PROXY_URL      = 'https://lqbmjmqrhcokimdtekyc.supabase.co/functions/v1/ploomes-vendas';
+const DEFAULT_META   = 335000;
+const REFRESH_MS     = 5 * 60 * 1000;
+
+const P = new URLSearchParams(location.search);
+function getMeta() {
+  return parseFloat(P.get('meta') || localStorage.getItem('sv_meta') || DEFAULT_META);
+}
+
+// ── Formato ──
+function fmtBRL(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+function fmtMes(d) {
+  return ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+          'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][d.getMonth()];
+}
+function fmtData(d) {
+  return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+// ── Status ──
+function setStatus(txt, ok=true) {
+  document.getElementById('status-text').textContent = txt;
+  document.getElementById('sdot').className = 'sdot' + (ok ? '' : ' err');
+}
+
+// ── Render ──
+function render(fat, meta) {
+  localStorage.setItem('sv_last_fat', fat);
+  const now = new Date();
+  document.getElementById('subtitle-text').innerHTML = `Acumulado ${fmtMes(now)}<br>${fmtData(now)}`;
+  document.getElementById('fat-value').textContent  = fmtBRL(fat);
+  document.getElementById('meta-value').textContent = fmtBRL(meta);
+  const pct   = meta > 0 ? Math.min(100, (fat / meta) * 100) : 0;
+  const falta = meta - fat;
+  document.getElementById('prog-fill').style.width = pct.toFixed(1) + '%';
+  document.getElementById('prog-pct').textContent  = pct.toFixed(1) + '% atingido';
+  document.getElementById('prog-rest').textContent = falta > 0 ? 'Faltam ' + fmtBRL(falta) : '✅ Meta atingida!';
+  setStatus('Atualizado às ' + now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }), true);
+}
+
+// ── Fetch via proxy Supabase ──
+async function fetchFaturamento() {
+  const meta = getMeta();
+  const now  = new Date();
+  const url  = `${PROXY_URL}?mes=${now.getMonth()+1}&ano=${now.getFullYear()}`;
+  setStatus('Buscando dados...', true);
+  try {
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    render(data.total || 0, meta);
+  } catch(e) {
+    console.error('[Vendas]', e);
+    setStatus('Erro — ' + e.message, false);
+    const last = localStorage.getItem('sv_last_fat');
+    if (last) render(parseFloat(last), meta);
+  }
+}
+
+// ── Config overlay ──
+function openCfg() {
+  document.getElementById('cfg-meta').value = getMeta();
+  document.getElementById('cfg-ov').classList.remove('hidden');
+}
+function closeCfg() { document.getElementById('cfg-ov').classList.add('hidden'); }
+function saveCfg() {
+  const meta = parseFloat(document.getElementById('cfg-meta').value);
+  if (!isNaN(meta) && meta > 0) localStorage.setItem('sv_meta', meta);
+  closeCfg();
+  fetchFaturamento();
+}
+document.getElementById('cfg-ov').addEventListener('click', e => {
+  if (e.target === document.getElementById('cfg-ov')) closeCfg();
+});
+
+// ── Init ──
+fetchFaturamento();
+setInterval(fetchFaturamento, REFRESH_MS);
+setInterval(() => {
+  const n = new Date();
+  if (n.getHours()===0 && n.getMinutes()===0) fetchFaturamento();
+}, 60000);
+</script>
+</body>
+</html>
