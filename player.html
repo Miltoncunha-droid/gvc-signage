@@ -147,11 +147,12 @@ function showSlide(i){
   if(!slide) return;
   slide.classList.add('active');
   const item = playlist[i];
-  if(item.tipo === 'imagem'){
-    const ms = (item.duracao||10) * 1000;
+  if(item.tipo === 'imagem' || item.tipo === 'pagina'){
+    const ms = (item.duracao||30) * 1000;
     startProgress(ms);
     slideTimer = setTimeout(nextSlide, ms);
   } else {
+    // video
     const vid = slide.querySelector('video');
     if(!vid) return;
     vid.currentTime = 0;
