@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GVC — Vendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 28px 56px 16px;
+  gap: 28px;
+  flex-shrink: 0;
+}
+.logo {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.title-pill {
+  background: #1DB88A;
+  color: #fff;
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  padding: 14px 0;
+  border-radius: 18px;
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Subtitle ── */
+.subtitle {
+  text-align: center;
+  padding: 10px 56px 8px;
+  flex-shrink: 0;
+}
+.subtitle h2 {
+  font-size: 40px;
+  font-weight: 700;
+  color: #0F6E56;
+  line-height: 1.3;
+}
+
+/* ── Faturamento bar ── */
+.bar-section {
+  margin: 8px 56px;
+  flex-shrink: 0;
+}
+.bar {
+  background: #1DB88A;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 40px;
+}
+.bar-value {
+  color: #fff;
+  font-size: 96px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+
+/* ── Progress ── */
+.progress-section {
+  margin: 10px 56px 4px;
+  flex-shrink: 0;
+}
+.progress-bg {
+  background: #E1F5EE;
+  border-radius: 10px;
+  height: 18px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #1DB88A;
+  border-radius: 10px;
+  transition: width 1.2s ease;
+  width: 0%;
+}
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0F6E56;
+  padding: 0 2px;
+}
+
+/* ── Meta label ── */
+.meta-label {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: #0F6E56;
+  padding: 10px 56px 6px;
+  flex-shrink: 0;
+}
+
+/* ── Meta bar ── */
+.meta-bar {
+  margin: 0 56px;
+  background: #fff;
+  border: 5px solid #1DB88A;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 40px;
+  flex-shrink: 0;
+}
+.meta-bar .bar-value {
+  color: #0F6E56;
+  font-size: 88px;
+}
+
+/* ── Footer ── */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 56px 12px;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+.footer-status {
+  font-size: 16px;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sdot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #1DB88A;
+  box-shadow: 0 0 6px #1DB88A;
+  display: inline-block;
+}
+.sdot.err { background: #E53E3E; box-shadow: 0 0 6px #E53E3E; }
+.footer-config {
+  font-size: 15px;
+  color: #ccc;
+  cursor: pointer;
+}
+.footer-config:hover { color: #1DB88A; }
+
+/* ── Config overlay ── */
+.cfg-ov {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+.cfg-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 32px;
+  width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.cfg-box h3 { font-size: 18px; font-weight: 700; color: #1A2740; margin-bottom: 20px; }
+.cfg-field { margin-bottom: 16px; }
+.cfg-field label { display: block; font-size: 13px; font-weight: 600; color: #6B7C93; margin-bottom: 5px; }
+.cfg-field input {
+  width: 100%; padding: 10px 13px;
+  border: 1.5px solid #E2E8F0; border-radius: 9px;
+  font-size: 15px; font-family: inherit; color: #1A2740;
+}
+.cfg-field input:focus { outline: none; border-color: #1DB88A; }
+.cfg-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+.cbtn {
+  padding: 9px 20px; border-radius: 8px; font-size: 14px;
+  font-weight: 600; cursor: pointer; border: none; font-family: inherit;
+}
+.cbtn-g { background: #1DB88A; color: #fff; }
+.cbtn-g:hover { background: #0F6E56; }
+.cbtn-c { background: #F0F4F8; color: #6B7C93; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <img class="logo" src="https://res.cloudinary.com/dbzqk5wif/image/upload/v1775303727/gvc-signage/kjwc7gmgtstjwe9uyg6x.png" alt="GVC">
+  <div class="title-pill">VENDAS</div>
+</div>
+
+<!-- Subtítulo -->
+<div class="subtitle">
+  <h2 id="subtitle-text">Carregando...</h2>
+</div>
+
+<!-- Barra faturamento -->
+<div class="bar-section">
+  <div class="bar">
+    <div class="bar-value" id="fat-value">R$ —</div>
+  </div>
+</div>
+
+<!-- Progresso -->
+<div class="progress-section">
+  <div class="progress-bg">
+    <div class="progress-fill" id="prog-fill"></div>
+  </div>
+  <div class="progress-label">
+    <span id="prog-pct">0%</span>
+    <span id="prog-rest"></span>
+  </div>
+</div>
+
+<!-- Meta label -->
+<div class="meta-label">Meta Mensal</div>
+
+<!-- Barra meta -->
+<div class="meta-bar">
+  <div class="bar-value" id="meta-value">R$ —</div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-status">
+    <span class="sdot" id="sdot"></span>
+    <span id="status-text">Conectando...</span>
+  </div>
+  <div class="footer-config" onclick="openCfg()" title="Configurar">⚙ configurar</div>
+</div>
+
+<!-- Config overlay -->
+<div class="cfg-ov hidden" id="cfg-ov">
+  <div class="cfg-box">
+    <h3>⚙ Configurações do Slide</h3>
+    <div class="cfg-field">
+      <label>Meta Mensal (R$)</label>
+      <input type="number" id="cfg-meta" placeholder="335000">
+    </div>
+    <div class="cfg-field">
+      <label>User-Key do Ploomes</label>
+      <input type="text" id="cfg-key" placeholder="CE45AEC6...">
+    </div>
+    <div class="cfg-btns">
+      <button class="cbtn cbtn-c" onclick="closeCfg()">Cancelar</button>
+      <button class="cbtn cbtn-g" onclick="saveCfg()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   CONFIGURAÇÃO PADRÃO
+   (pode ser alterada pelo painel ⚙ na TV
+    ou via URL: ?meta=335000&key=SUA_CHAVE)
+   ───────────────────────────────────────── */
+const DEFAULTS = {
+  meta: 335000,
+  key:  'CE45AEC6DAEB6E07F988938BBAAC8374E3AF266BC4D3B2018DF08CAD19E3FB976299FB000055FCC0D061991884D4F9082C32C5373B63A15C1AF756653B716910'
+};
+
+const REFRESH_INTERVAL = 5 * 60 * 1000; // atualiza a cada 5 min
+/* ───────────────────────────────────────── */
+
+const P = new URLSearchParams(location.search);
+
+function getCfg() {
+  return {
+    meta: parseFloat(P.get('meta') || localStorage.getItem('sv_meta') || DEFAULTS.meta),
+    key:  P.get('key')  || localStorage.getItem('sv_key')  || DEFAULTS.key
+  };
+}
+
+/* ─── Formatos ─── */
+function fmtBRL(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtMes(date) {
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                 'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return meses[date.getMonth()];
+}
+
+function fmtData(date) {
+  return date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+/* ─── Status ─── */
+function setStatus(txt, ok = true) {
+  document.getElementById('status-text').textContent = txt;
+  document.getElementById('sdot').className = 'sdot' + (ok ? '' : ' err');
+}
+
+/* ─── Renderiza valores ─── */
+function render(faturamento, meta) {
+  const now = new Date();
+  document.getElementById('subtitle-text').innerHTML =
+    `Acumulado ${fmtMes(now)}<br>${fmtData(now)}`;
+  document.getElementById('fat-value').textContent  = fmtBRL(faturamento);
+  document.getElementById('meta-value').textContent = fmtBRL(meta);
+
+  const pct = meta > 0 ? Math.min(100, (faturamento / meta) * 100) : 0;
+  const falta = meta - faturamento;
+
+  document.getElementById('prog-fill').style.width = pct.toFixed(1) + '%';
+  document.getElementById('prog-pct').textContent  = pct.toFixed(1) + '% atingido';
+  document.getElementById('prog-rest').textContent =
+    falta > 0 ? 'Faltam ' + fmtBRL(falta) : '✅ Meta atingida!';
+
+  setStatus('Atualizado às ' + now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }), true);
+}
+
+/* ─── Busca Ploomes ─── */
+async function fetchFaturamento() {
+  const { key, meta } = getCfg();
+
+  const now   = new Date();
+  const ini   = new Date(now.getFullYear(), now.getMonth(), 1);
+  const fim   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+  const iniStr = ini.toISOString().slice(0, 19);
+  const fimStr = fim.toISOString().slice(0, 19);
+
+  // StatusId 3 = Ganho no Ploomes
+  const filter = `StatusId eq 3 and CloseDate ge datetime'${iniStr}' and CloseDate le datetime'${fimStr}'`;
+  const url    = `https://api2.ploomes.com/Deals?$filter=${encodeURIComponent(filter)}&$select=Amount&$top=500`;
+
+  setStatus('Buscando dados...', true);
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Key': key,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+    const deals = data.value || [];
+
+    const total = deals.reduce((sum, d) => sum + (d.Amount || 0), 0);
+    render(total, meta);
+
+  } catch(e) {
+    console.error('[Vendas Slide]', e);
+    setStatus('Erro ao buscar dados — ' + e.message, false);
+
+    // Mantém último valor no display se já tinha
+    const last = localStorage.getItem('sv_last_fat');
+    if (last) render(parseFloat(last), meta);
+  }
+}
+
+/* ─── Persiste último valor ─── */
+const _origRender = render;
+window.render = function(fat, meta) {
+  localStorage.setItem('sv_last_fat', fat);
+  _origRender(fat, meta);
+};
+
+/* ─── Config overlay ─── */
+function openCfg() {
+  const { meta, key } = getCfg();
+  document.getElementById('cfg-meta').value = meta;
+  document.getElementById('cfg-key').value  = key;
+  document.getElementById('cfg-ov').classList.remove('hidden');
+}
+
+function closeCfg() {
+  document.getElementById('cfg-ov').classList.add('hidden');
+}
+
+function saveCfg() {
+  const meta = parseFloat(document.getElementById('cfg-meta').value);
+  const key  = document.getElementById('cfg-key').value.trim();
+  if (!isNaN(meta) && meta > 0) localStorage.setItem('sv_meta', meta);
+  if (key) localStorage.setItem('sv_key', key);
+  closeCfg();
+  fetchFaturamento();
+}
+
+document.getElementById('cfg-ov').addEventListener('click', e => {
+  if (e.target === document.getElementById('cfg-ov')) closeCfg();
+});
+
+/* ─── Init ─── */
+fetchFaturamento();
+setInterval(fetchFaturamento, REFRESH_INTERVAL);
+
+// Atualiza meia-noite (virada de mês)
+setInterval(() => {
+  const now = new Date();
+  if (now.getHours() === 0 && now.getMinutes() === 0) fetchFaturamento();
+}, 60000);
+</script>
+</body>
+</html>

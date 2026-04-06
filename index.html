@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GVC Signage — Painel</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g:#1DB88A;--gd:#0F6E56;--gl:#E1F5EE;
+  --sb:#0D1B2A;--st:#7A93AA;
+  --bg:#F0F4F8;--sur:#FFFFFF;--bdr:#E2E8F0;
+  --txt:#1A2740;--mut:#6B7C93;--red:#E53E3E;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);height:100vh;overflow:hidden;}
+#setup{display:flex;align-items:center;justify-content:center;height:100vh;}
+#app{display:none;height:100vh;overflow:hidden;}
+.layout{display:flex;height:100%;}
+.sb{width:236px;background:var(--sb);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sb-logo .brand{font-size:13px;font-weight:600;color:var(--g);letter-spacing:.1em;text-transform:uppercase;}
+.sb-logo .sub{font-size:11px;color:var(--st);margin-top:2px;}
+.sb-nav{flex:1;padding:12px 0;}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 20px;color:var(--st);font-size:14px;font-weight:500;cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+.ni:hover{background:rgba(255,255,255,.04);color:#fff;}
+.ni.active{background:rgba(29,184,138,.1);color:var(--g);border-left-color:var(--g);}
+.ni .ic{font-size:17px;width:20px;text-align:center;}
+.sb-foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.06);font-size:12px;color:var(--st);display:flex;align-items:center;gap:6px;}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.mhdr{background:var(--sur);border-bottom:1px solid var(--bdr);padding:18px 30px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.mhdr h1{font-size:19px;font-weight:600;}
+.mcnt{padding:28px 30px;flex:1;}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:22px;}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.ct{font-size:15px;font-weight:600;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.stat{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:18px 22px;}
+.sl{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.sv{font-size:28px;font-weight:600;margin-top:4px;color:var(--g);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s;}
+.btn-p{background:var(--g);color:#fff;}
+.btn-p:hover{background:var(--gd);}
+.btn-g{background:transparent;color:var(--mut);border:1px solid var(--bdr);}
+.btn-g:hover{background:var(--bg);color:var(--txt);}
+.btn-d{background:transparent;color:var(--red);border:1px solid #FED7D7;}
+.btn-d:hover{background:#FFF5F5;}
+.btn-sm{padding:5px 12px;font-size:13px;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);border-bottom:1px solid var(--bdr);}
+td{padding:13px 12px;border-bottom:1px solid var(--bdr);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#FAFCFF;}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:100px;font-size:12px;font-weight:500;}
+.bon{background:#D4EDDA;color:#155724;}
+.boff{background:var(--bg);color:var(--mut);}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:500;}
+.tg{background:var(--gl);color:var(--gd);}
+.fg{margin-bottom:14px;}
+label{display:block;font-size:13px;font-weight:500;color:var(--mut);margin-bottom:5px;}
+input,select{width:100%;padding:9px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:14px;font-family:inherit;background:var(--sur);color:var(--txt);transition:border .15s;}
+input:focus,select:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px rgba(29,184,138,.1);}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(3px);}
+.modal{background:var(--sur);border-radius:16px;padding:30px;width:480px;max-width:94vw;max-height:85vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.2);}
+.mt{font-size:17px;font-weight:600;margin-bottom:22px;}
+.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:22px;}
+.hidden{display:none!important;}
+.setup-card{background:var(--sur);border-radius:20px;padding:38px;width:460px;box-shadow:0 8px 32px rgba(0,0,0,.08);}
+.setup-head{text-align:center;margin-bottom:26px;}
+.setup-ico{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;background:var(--gl);border-radius:14px;font-size:26px;margin-bottom:12px;}
+.setup-head h2{font-size:22px;font-weight:600;}
+.setup-head p{font-size:14px;color:var(--mut);margin-top:4px;}
+.stack-badge{display:flex;gap:8px;justify-content:center;margin-bottom:22px;}
+.sbadge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.sb-fire{background:#FFF3E0;color:#E65100;}
+.sb-cloud{background:#E8F5E9;color:#2E7D32;}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(156px,1fr));gap:14px;}
+.mitem{border:1px solid var(--bdr);border-radius:10px;overflow:hidden;transition:box-shadow .15s;}
+.mitem:hover{box-shadow:0 4px 14px rgba(0,0,0,.1);}
+.mthumb{aspect-ratio:16/9;background:#1A2740;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.mthumb img{width:100%;height:100%;object-fit:cover;}
+.mthumb .vic{font-size:28px;color:rgba(255,255,255,.35);}
+.minfo{padding:9px 11px;}
+.mname{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mact{display:flex;gap:4px;margin-top:7px;}
+.uparea{border:2px dashed var(--bdr);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);}
+.uparea:hover,.uparea.dov{border-color:var(--g);background:var(--gl);}
+.uparea p{color:var(--mut);font-size:14px;}
+.progwrap{margin-top:12px;display:none;}
+.progwrap.show{display:block;}
+.progbar{height:5px;background:var(--bdr);border-radius:3px;overflow:hidden;margin-top:6px;}
+.progfill{height:100%;background:var(--g);border-radius:3px;transition:width .15s;}
+.prow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bdr);}
+.prow:last-child{border-bottom:none;}
+.ithumb{width:60px;height:34px;background:#1A2740;border-radius:5px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.ithumb img{width:100%;height:100%;object-fit:cover;}
+.ithumb .tic{font-size:16px;color:rgba(255,255,255,.35);}
+.iinfo{flex:1;min-width:0;}
+.iname{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.imeta{font-size:12px;color:var(--mut);margin-top:1px;}
+.tokdisp{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;}
+.tokdisp code{flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt);word-break:break-all;}
+.copybtn{padding:4px 10px;font-size:12px;background:var(--gl);color:var(--gd);border:none;border-radius:5px;cursor:pointer;font-weight:600;flex-shrink:0;}
+.copybtn:hover{background:#c3e9db;}
+.mpicker{max-height:200px;overflow-y:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;}
+.mpick-item{cursor:pointer;border:2px solid transparent;border-radius:7px;overflow:hidden;transition:border .15s;}
+.mpick-item:hover,.mpick-item.sel{border-color:var(--g);}
+.mpick-item .pt{aspect-ratio:16/9;background:#1A2740;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.mpick-item .pt img{width:100%;height:100%;object-fit:cover;}
+.mpick-item .pn{padding:3px 5px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sec{display:none;}.sec.active{display:block;}
+.empty{text-align:center;padding:44px 24px;color:var(--mut);}
+.empty .eico{font-size:38px;margin-bottom:10px;}
+.empty h3{font-size:15px;font-weight:600;color:var(--txt);margin-bottom:5px;}
+.empty p{font-size:13px;}
+.hint{font-size:12px;color:var(--mut);margin-top:5px;}
+.toast{position:fixed;bottom:22px;right:22px;background:#1A2740;color:#fff;padding:13px 18px;border-radius:10px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:9px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:9999;animation:tIn .25s ease;}
+@keyframes tIn{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP ══ -->
+<div id="setup">
+  <div class="setup-card">
+    <div class="setup-head">
+      <img src="https://res.cloudinary.com/dbzqk5wif/image/upload/v1775303727/gvc-signage/kjwc7gmgtstjwe9uyg6x.png" alt="Grupo GVC" style="height:80px;width:auto;max-width:260px;object-fit:contain;display:block;margin:0 auto 16px;">
+      <h2>GVC Signage</h2>
+      <p>Configure as conexões para começar</p>
+    </div>
+    <div class="stack-badge">
+      <span class="sbadge sb-fire">🔥 Firebase Firestore</span>
+      <span class="sbadge sb-cloud">☁️ Cloudinary</span>
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Firebase</div>
+    <div class="fg"><label>API Key</label>
+      <input type="text" id="s-apikey" placeholder="AIzaSy..." value="AIzaSyDF4gr-qWtP1f2q08gAh5FqQechsUcMydg"></div>
+    <div class="fg"><label>Project ID</label>
+      <input type="text" id="s-proj" placeholder="display-7c044" value="display-7c044"></div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;margin-top:6px;">Cloudinary</div>
+    <div class="fg"><label>Cloud Name</label>
+      <input type="text" id="s-cloud" placeholder="dbzqk5wif" value="dbzqk5wif"></div>
+    <div class="fg"><label>Upload Preset</label>
+      <input type="text" id="s-preset" placeholder="gvc-signage" value="gvc-signage"></div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;margin-top:6px;">Player</div>
+    <div class="fg"><label>URL do player.html</label>
+      <input type="text" id="s-purl" placeholder="https://grupogvc.github.io/gvc-signage/player.html"></div>
+
+    <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:4px;" onclick="doSetup()">Conectar →</button>
+    <p id="s-err" style="color:var(--red);font-size:13px;margin-top:10px;display:none;"></p>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+<div class="layout">
+  <div class="sb">
+    <div class="sb-logo">
+      <img src="https://res.cloudinary.com/dbzqk5wif/image/upload/v1775303727/gvc-signage/kjwc7gmgtstjwe9uyg6x.png" alt="Grupo GVC" style="height:56px;width:auto;max-width:180px;object-fit:contain;display:block;">
+      <div class="sub" style="margin-top:6px;">Gerenciamento de TVs</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="ni active" data-s="dashboard"    onclick="nav('dashboard')">   <span class="ic">📊</span>Dashboard</div>
+      <div class="ni"        data-s="dispositivos" onclick="nav('dispositivos')"><span class="ic">📺</span>Dispositivos</div>
+      <div class="ni"        data-s="playlists"    onclick="nav('playlists')">   <span class="ic">🎬</span>Playlists</div>
+      <div class="ni"        data-s="midia"        onclick="nav('midia')">       <span class="ic">🖼️</span>Mídia</div>
+      <div class="ni"        data-s="config"       onclick="nav('config')">      <span class="ic">⚙️</span>Config</div>
+    </nav>
+    <div class="sb-foot">
+      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g);flex-shrink:0;"></span>
+      Conectado
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="mhdr">
+      <h1 id="ptitle">Dashboard</h1>
+      <div id="pact"></div>
+    </div>
+    <div class="mcnt">
+
+      <!-- Dashboard -->
+      <div id="sec-dashboard" class="sec active">
+        <div class="g3" style="margin-bottom:22px;">
+          <div class="stat"><div class="sl">Total de TVs</div>   <div class="sv" id="st-tvs">—</div></div>
+          <div class="stat"><div class="sl">Online agora</div>   <div class="sv" id="st-on">—</div></div>
+          <div class="stat"><div class="sl">Playlists</div>      <div class="sv" id="st-pl">—</div></div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="ct">Status das TVs</span>
+            <button class="btn btn-g btn-sm" onclick="nav('dispositivos')">Ver todos →</button>
+          </div>
+          <div id="dash-tv"></div>
+        </div>
+      </div>
+
+      <!-- Dispositivos -->
+      <div id="sec-dispositivos" class="sec">
+        <div class="card">
+          <table>
+            <thead><tr><th>Nome / Unidade</th><th>Status</th><th>Playlist</th><th>Último ping</th><th>Ações</th></tr></thead>
+            <tbody id="dev-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Playlists -->
+      <div id="sec-playlists" class="sec">
+        <div id="pl-list"><div class="card"><div id="pl-tbody"></div></div></div>
+        <div id="pl-edit" class="hidden">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px;">
+            <button class="btn btn-g btn-sm" onclick="showPlList()">← Voltar</button>
+            <h2 id="pl-edit-name" style="font-size:16px;font-weight:600;"></h2>
+          </div>
+          <div class="g2">
+            <div class="card">
+              <div class="ch"><span class="ct">Itens da Playlist</span>
+                <button class="btn btn-p btn-sm" onclick="openAddItem()">+ Adicionar</button>
+              </div>
+              <div id="pl-items"></div>
+            </div>
+            <div class="card">
+              <div class="ct" style="margin-bottom:14px;">Pré-visualização</div>
+              <div id="preview" style="background:#000;aspect-ratio:16/9;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                <span style="color:rgba(255,255,255,.3);font-size:13px;">Clique em um item</span>
+              </div>
+              <div id="prev-hint" style="font-size:12px;color:var(--mut);margin-top:8px;text-align:center;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mídia -->
+      <div id="sec-midia" class="sec">
+        <div style="margin-bottom:22px;">
+          <div class="uparea" id="uparea" onclick="document.getElementById('finput').click()">
+            <div style="font-size:34px;margin-bottom:7px;">📁</div>
+            <p><strong>Clique para enviar</strong> ou arraste arquivos aqui</p>
+            <p style="margin-top:3px;font-size:13px;">JPG, PNG, GIF, MP4, WebM — enviado para o Cloudinary</p>
+            <input type="file" id="finput" multiple accept="image/*,video/*" style="display:none" onchange="doUpload(this.files)">
+          </div>
+          <div class="progwrap" id="upgprog">
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span id="upname">Enviando...</span><span id="uppct">0%</span>
+            </div>
+            <div class="progbar"><div class="progfill" id="upbar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="mgrid" id="mgrid">
+          <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--mut);">Carregando...</div>
+        </div>
+      </div>
+
+      <!-- Config -->
+      <div id="sec-config" class="sec">
+        <div class="card" style="max-width:520px;">
+          <div class="ct" style="margin-bottom:18px;">Configurações atuais</div>
+          <div class="fg"><label>Firebase Project ID</label>
+            <div class="tokdisp"><code id="cfg-proj">—</code></div></div>
+          <div class="fg"><label>Cloudinary Cloud Name</label>
+            <div class="tokdisp"><code id="cfg-cloud">—</code></div></div>
+          <div class="fg"><label>URL base do Player</label>
+            <input type="text" id="cfg-purl" onblur="savePUrl()"></div>
+          <button class="btn btn-d btn-sm" onclick="doReset()">Desconectar e reconfigurar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modais -->
+<div class="ov hidden" id="m-dev">
+  <div class="modal">
+    <div class="mt">📺 Adicionar Dispositivo</div>
+    <div class="fg"><label>Nome</label><input type="text" id="d-nome" placeholder="TV Recepção, TV Refeitório..."></div>
+    <div class="fg"><label>Unidade</label><input type="text" id="d-unit" placeholder="Salvador, CVR Oeste, EVE Paulista..."></div>
+    <div class="mf">
+      <button class="btn btn-g" onclick="cm('m-dev')">Cancelar</button>
+      <button class="btn btn-p" onclick="doAddDev()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov hidden" id="m-devinfo">
+  <div class="modal">
+    <div class="mt" id="m-devinfo-title">Configurar TV</div>
+    <div class="fg">
+      <label>URL do Player — cole no navegador da TV</label>
+      <div class="tokdisp">
+        <code id="dev-purl">—</code>
+        <button class="copybtn" onclick="copyT(document.getElementById('dev-purl').textContent)">Copiar</button>
+      </div>
+      <p class="hint">URL curta — só o token, sem credenciais.</p>
+    </div>
+    <div class="fg"><label>Playlist atribuída</label>
+      <select id="dev-pl" onchange="setDevPl()"></select>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cm('m-devinfo')">Fechar</button></div>
+  </div>
+</div>
+
+<div class="ov hidden" id="m-pl">
+  <div class="modal">
+    <div class="mt">🎬 Nova Playlist</div>
+    <div class="fg"><label>Nome</label><input type="text" id="pl-nome" placeholder="Comunicados Gerais, Campanha Abril..."></div>
+    <div class="mf">
+      <button class="btn btn-g" onclick="cm('m-pl')">Cancelar</button>
+      <button class="btn btn-p" onclick="doAddPl()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov hidden" id="m-item">
+  <div class="modal">
+    <div class="mt">➕ Adicionar Item</div>
+    <div class="fg"><label>Tipo</label>
+      <select id="it-tipo" onchange="togDur()">
+        <option value="imagem">Imagem</option>
+        <option value="video">Vídeo</option>
+        <option value="pagina">Página Web (slide dinâmico)</option>
+      </select>
+    </div>
+    <div class="fg"><label>URL do arquivo</label>
+      <input type="text" id="it-url" placeholder="https://res.cloudinary.com/...">
+      <p class="hint">Cole a URL ou selecione da biblioteca abaixo</p>
+    </div>
+    <div class="fg" id="dur-grp"><label>Duração (segundos)</label>
+      <input type="number" id="it-dur" value="10" min="1" max="600">
+    </div>
+    <div style="margin-bottom:4px;font-size:13px;font-weight:500;color:var(--mut);">Selecionar da biblioteca:</div>
+    <div class="mpicker" id="mpicker"></div>
+    <div class="mf">
+      <button class="btn btn-g" onclick="cm('m-item')">Cancelar</button>
+      <button class="btn btn-p" id="btn-add-item" onclick="doAddItem()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let db;
+let cfg = {
+  apiKey:  localStorage.getItem('fb_apikey')  || '',
+  proj:    localStorage.getItem('fb_proj')    || '',
+  cloud:   localStorage.getItem('cl_cloud')   || '',
+  preset:  localStorage.getItem('cl_preset')  || '',
+  purl:    localStorage.getItem('fb_purl')    || ''
+};
+let S = { devices:[], playlists:[], media:[], editPlId:null, editDevId:null };
+
+if (cfg.apiKey && cfg.proj && cfg.cloud) boot();
+
+/* ═══ SETUP ═══ */
+async function doSetup() {
+  const apiKey = document.getElementById('s-apikey').value.trim();
+  const proj   = document.getElementById('s-proj').value.trim();
+  const cloud  = document.getElementById('s-cloud').value.trim();
+  const preset = document.getElementById('s-preset').value.trim();
+  const purl   = document.getElementById('s-purl').value.trim();
+  const err    = document.getElementById('s-err');
+  if (!apiKey || !proj || !cloud || !preset) {
+    err.textContent = 'Preencha todos os campos.'; err.style.display = 'block'; return;
+  }
+  try {
+    firebase.initializeApp({ apiKey, authDomain:`${proj}.firebaseapp.com`, projectId:proj });
+    await firebase.firestore().collection('signage_devices').limit(1).get();
+    localStorage.setItem('fb_apikey', apiKey);
+    localStorage.setItem('fb_proj',   proj);
+    localStorage.setItem('cl_cloud',  cloud);
+    localStorage.setItem('cl_preset', preset);
+    localStorage.setItem('fb_purl',   purl);
+    cfg = { apiKey, proj, cloud, preset, purl };
+    boot();
+  } catch(e) {
+    err.textContent = 'Erro: ' + (e.message||e); err.style.display = 'block';
+  }
+}
+
+function boot() {
+  if (!firebase.apps.length) {
+    firebase.initializeApp({ apiKey:cfg.apiKey, authDomain:`${cfg.proj}.firebaseapp.com`, projectId:cfg.proj });
+  }
+  db = firebase.firestore();
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('app').style.display   = 'block';
+  Promise.all([loadDevs(), loadPls(), loadMedia()]).then(() => renderDash());
+  setInterval(() => { loadDevs().then(() => { if(activeSec==='dashboard') renderDash(); }); }, 60000);
+}
+
+/* ═══ NAV ═══ */
+let activeSec = 'dashboard';
+function nav(s) {
+  document.querySelectorAll('.sec').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
+  document.getElementById('sec-'+s).classList.add('active');
+  document.querySelector('[data-s="'+s+'"]').classList.add('active');
+  activeSec = s;
+  const titles = {dashboard:'Dashboard',dispositivos:'Dispositivos',playlists:'Playlists',midia:'Mídia',config:'Configurações'};
+  document.getElementById('ptitle').textContent = titles[s]||s;
+  const pa = document.getElementById('pact'); pa.innerHTML = '';
+  if(s==='dispositivos') pa.innerHTML='<button class="btn btn-p" onclick="om(\'m-dev\')">+ Adicionar TV</button>';
+  if(s==='playlists')    pa.innerHTML='<button class="btn btn-p" onclick="om(\'m-pl\')">+ Nova Playlist</button>';
+  if(s==='config'){
+    document.getElementById('cfg-proj').textContent  = cfg.proj;
+    document.getElementById('cfg-cloud').textContent = cfg.cloud;
+    document.getElementById('cfg-purl').value        = cfg.purl;
+  }
+  if(s==='dashboard') renderDash();
+  if(s==='playlists')  showPlList();
+  if(s==='midia')      renderMedia();
+}
+
+/* ═══ DEVICES ═══ */
+async function loadDevs() {
+  const snap = await db.collection('signage_devices').orderBy('created_at').get();
+  S.devices = snap.docs.map(d => ({id:d.id,...d.data()}));
+  renderDevs();
+}
+
+function isOnline(d){ return d.ultimo_ping && Date.now()-d.ultimo_ping.toMillis()<120000; }
+
+function renderDevs() {
+  const tb = document.getElementById('dev-tbody');
+  if(!S.devices.length){
+    tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="eico">📺</div><h3>Nenhuma TV cadastrada</h3><p>Clique em "+ Adicionar TV"</p></div></td></tr>';
+    return;
+  }
+  const plMap = Object.fromEntries(S.playlists.map(p=>[p.id,p.nome]));
+  tb.innerHTML = S.devices.map(d=>`
+    <tr>
+      <td><div style="font-weight:500;">${d.nome}</div><div style="font-size:12px;color:var(--mut);">${d.unidade}</div></td>
+      <td><span class="badge ${isOnline(d)?'bon':'boff'}"><span class="dot"></span>${isOnline(d)?'Online':'Offline'}</span></td>
+      <td>${d.playlist_id&&plMap[d.playlist_id]?`<span class="tag tg">${plMap[d.playlist_id]}</span>`:'—'}</td>
+      <td style="font-size:13px;color:var(--mut);">${d.ultimo_ping?ago(d.ultimo_ping.toMillis()):'—'}</td>
+      <td style="display:flex;gap:6px;align-items:center;">
+        <button class="btn btn-g btn-sm" onclick="openDevInfo('${d.id}')">⚙ Configurar</button>
+        <button class="btn btn-d btn-sm" onclick="delDev('${d.id}','${d.nome}')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function doAddDev() {
+  const nome=document.getElementById('d-nome').value.trim();
+  const unidade=document.getElementById('d-unit').value.trim();
+  if(!nome||!unidade){toast('Preencha nome e unidade','⚠️');return;}
+  const token=crypto.randomUUID().replace(/-/g,'');
+  await db.collection('signage_devices').add({ nome, unidade, token, playlist_id:null, ultimo_ping:null, created_at:firebase.firestore.FieldValue.serverTimestamp() });
+  cm('m-dev');
+  document.getElementById('d-nome').value='';
+  document.getElementById('d-unit').value='';
+  await loadDevs();
+  toast('TV adicionada!','✅');
+}
+
+function openDevInfo(id) {
+  const dev=S.devices.find(d=>d.id===id);
+  if(!dev)return;
+  S.editDevId=id;
+  document.getElementById('m-devinfo-title').textContent='⚙ '+dev.nome;
+  // URL curta — só o token
+  const base = cfg.purl || 'player.html';
+  document.getElementById('dev-purl').textContent = base+'?token='+dev.token;
+  const sel=document.getElementById('dev-pl');
+  sel.innerHTML='<option value="">— Sem playlist —</option>'+
+    S.playlists.map(p=>`<option value="${p.id}"${dev.playlist_id===p.id?' selected':''}>${p.nome}</option>`).join('');
+  om('m-devinfo');
+}
+
+async function setDevPl() {
+  const plId=document.getElementById('dev-pl').value||null;
+  await db.collection('signage_devices').doc(S.editDevId).update({playlist_id:plId});
+  await loadDevs();
+  toast('Playlist atualizada!','✅');
+}
+
+async function delDev(id, nome) {
+  if(!confirm(`Excluir o dispositivo "${nome}"?\n\nEsta ação não pode ser desfeita.`)) return;
+  await db.collection('signage_devices').doc(id).delete();
+  cm('m-devinfo');
+  await loadDevs();
+  toast(`"${nome}" excluído`,'🗑');
+}
+
+/* ═══ PLAYLISTS ═══ */
+async function loadPls() {
+  const snap=await db.collection('signage_playlists').orderBy('created_at').get();
+  S.playlists=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderPlList();
+}
+
+function renderPlList() {
+  const c=document.getElementById('pl-tbody');
+  if(!S.playlists.length){
+    c.innerHTML='<div class="empty"><div class="eico">🎬</div><h3>Nenhuma playlist</h3><p>Crie playlists para organizar seu conteúdo</p></div>';
+    return;
+  }
+  c.innerHTML=S.playlists.map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--bdr);">
+      <div>
+        <div style="font-weight:500;">${p.nome}</div>
+        <div style="font-size:12px;color:var(--mut);margin-top:2px;">${S.devices.filter(d=>d.playlist_id===p.id).length} TV(s) usando</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-g btn-sm" onclick="editPl('${p.id}')">✏️ Editar itens</button>
+        <button class="btn btn-d btn-sm" onclick="delPl('${p.id}','${p.nome}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function showPlList(){
+  document.getElementById('pl-list').classList.remove('hidden');
+  document.getElementById('pl-edit').classList.add('hidden');
+  S.editPlId=null; renderPlList();
+}
+
+async function doAddPl(){
+  const nome=document.getElementById('pl-nome').value.trim();
+  if(!nome){toast('Informe um nome','⚠️');return;}
+  await db.collection('signage_playlists').add({nome,created_at:firebase.firestore.FieldValue.serverTimestamp()});
+  cm('m-pl'); document.getElementById('pl-nome').value='';
+  await loadPls(); toast('Playlist criada!','✅');
+}
+
+async function delPl(id, nome) {
+  const tvs = S.devices.filter(d => d.playlist_id === id).length;
+  const aviso = tvs > 0
+    ? `⚠️ Esta playlist está em uso por ${tvs} TV(s).\n\nExcluir mesmo assim?`
+    : `Excluir a playlist "${nome}" e todos os seus itens?`;
+  if(!confirm(aviso)) return;
+  // Exclui todos os itens da playlist
+  const snap = await db.collection('signage_items').where('playlist_id','==',id).get();
+  const batch = db.batch();
+  snap.docs.forEach(d => batch.delete(d.ref));
+  batch.delete(db.collection('signage_playlists').doc(id));
+  await batch.commit();
+  await Promise.all([loadPls(), loadDevs()]);
+  toast(`"${nome}" excluída`,'🗑');
+}
+
+async function editPl(id){
+  S.editPlId=id;
+  const pl=S.playlists.find(p=>p.id===id);
+  document.getElementById('pl-edit-name').textContent=pl.nome;
+  document.getElementById('pl-list').classList.add('hidden');
+  document.getElementById('pl-edit').classList.remove('hidden');
+  await loadPlItems();
+}
+
+async function loadPlItems(){
+  // Sem orderBy para não exigir índice composto — ordena no cliente
+  const snap=await db.collection('signage_items').where('playlist_id','==',S.editPlId).get();
+  const items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+  renderPlItems(items);
+}
+
+function renderPlItems(items){
+  const c=document.getElementById('pl-items');
+  if(!items.length){c.innerHTML='<div class="empty" style="padding:28px;"><p>Clique em "+ Adicionar" para inserir conteúdo</p></div>';return;}
+  c.innerHTML=items.map(item=>`
+    <div class="prow">
+      <div class="ithumb">
+        ${item.tipo==='imagem'?`<img src="${item.url}" onerror="this.parentElement.innerHTML='<span class=\\'tic\\'>🖼️</span>'">`:`<span class="tic">🎬</span>`}
+      </div>
+      <div class="iinfo" onclick="prevItem('${item.url}','${item.tipo}','${item.nome||''}')" style="cursor:pointer;">
+        <div class="iname">${item.nome||item.url.split('/').pop().split('?')[0]}</div>
+        <div class="imeta">${item.tipo} · ${item.tipo==='imagem'?item.duracao+'s':'auto'} · clique p/ visualizar</div>
+      </div>
+      <button class="btn btn-d btn-sm" onclick="delItem('${item.id}')">🗑</button>
+    </div>`).join('');
+}
+
+function prevItem(url,tipo,nome){
+  const c=document.getElementById('preview');
+  c.innerHTML=tipo==='imagem'?`<img src="${url}" style="max-width:100%;max-height:100%;object-fit:contain;">`:`<video src="${url}" controls autoplay muted style="max-width:100%;max-height:100%;"></video>`;
+  document.getElementById('prev-hint').textContent=nome||url.split('/').pop().split('?')[0];
+}
+
+function openAddItem(){
+  renderMediaPicker(); cm('m-item'); om('m-item');
+  document.getElementById('it-url').value='';
+  document.getElementById('it-dur').value='10';
+  document.getElementById('it-tipo').value='imagem';
+  togDur();
+}
+
+function togDur(){
+  const tipo = document.getElementById('it-tipo').value;
+  document.getElementById('dur-grp').style.display = tipo === 'video' ? 'none' : 'block';
+  document.getElementById('it-url').placeholder =
+    tipo === 'pagina'
+      ? 'https://grupogvc.github.io/gvc-signage/slide-vendas.html'
+      : 'https://res.cloudinary.com/...';
+}
+
+async function doAddItem(){
+  const btn=document.getElementById('btn-add-item');
+  const tipo=document.getElementById('it-tipo').value;
+  const url=document.getElementById('it-url').value.trim();
+  const dur=parseInt(document.getElementById('it-dur').value)||10;
+
+  if(!url){toast('Informe ou selecione um arquivo','⚠️');return;}
+
+  btn.textContent='Adicionando...'; btn.disabled=true;
+
+  try {
+    // Busca todos os itens da playlist para calcular próxima ordem (sem orderBy)
+    const snap=await db.collection('signage_items').where('playlist_id','==',S.editPlId).get();
+    const maxOrdem = snap.empty ? -1 : Math.max(...snap.docs.map(d=>d.data().ordem||0));
+    const ord = maxOrdem + 1;
+
+    await db.collection('signage_items').add({
+      playlist_id: S.editPlId,
+      tipo, url, duracao:dur, ordem:ord,
+      nome: decodeURIComponent(url.split('/').pop().split('?')[0].replace(/\.[^.]+$/, '')),
+      created_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    cm('m-item');
+    await loadPlItems();
+    toast('Item adicionado com sucesso!','✅');
+  } catch(e) {
+    toast('Erro ao adicionar: '+e.message,'❌');
+    console.error(e);
+  } finally {
+    btn.textContent='Adicionar'; btn.disabled=false;
+  }
+}
+
+async function delItem(id){
+  if(!confirm('Remover este item da playlist?'))return;
+  await db.collection('signage_items').doc(id).delete();
+  await loadPlItems(); toast('Item removido','✅');
+}
+
+/* ═══ MÍDIA — CLOUDINARY ═══ */
+async function loadMedia(){
+  try{
+    const snap=await db.collection('signage_media').orderBy('created_at','desc').get();
+    S.media=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderMedia();
+  }catch(e){
+    document.getElementById('mgrid').innerHTML=`<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--red);">Erro ao carregar mídia: ${e.message}</div>`;
+  }
+}
+
+function renderMedia(){
+  const g=document.getElementById('mgrid');
+  if(!S.media.length){g.innerHTML='<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--mut);">Nenhum arquivo enviado ainda. Arraste imagens ou vídeos acima.</div>';return;}
+  g.innerHTML=S.media.map(f=>`
+    <div class="mitem">
+      <div class="mthumb">
+        ${f.tipo==='imagem'?`<img src="${f.url}" alt="${f.nome}">`:`<span class="vic">🎬</span>`}
+      </div>
+      <div class="minfo">
+        <div class="mname" title="${f.nome}">${f.nome}</div>
+        <div class="mact">
+          <button class="copybtn" onclick="copyT('${f.url}')">Copiar URL</button>
+          <button style="padding:3px 8px;font-size:11px;background:transparent;border:1px solid #fed7d7;color:var(--red);border-radius:5px;cursor:pointer;" onclick="delMedia('${f.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function doUpload(files){
+  const prog=document.getElementById('upgprog');
+  const bar=document.getElementById('upbar');
+  const pct=document.getElementById('uppct');
+  const fname=document.getElementById('upname');
+  const exts_vid=['mp4','webm','mov','avi','mkv'];
+  prog.classList.add('show');
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+    fname.textContent=`Enviando: ${file.name} (${i+1}/${files.length})`;
+    bar.style.width='0%'; pct.textContent='0%';
+    const ext=file.name.split('.').pop().toLowerCase();
+    const resourceType=exts_vid.includes(ext)?'video':'image';
+    const fd=new FormData();
+    fd.append('file',file);
+    fd.append('upload_preset',cfg.preset);
+    fd.append('folder','gvc-signage');
+    try{
+      const res=await new Promise((resolve,reject)=>{
+        const xhr=new XMLHttpRequest();
+        xhr.open('POST',`https://api.cloudinary.com/v1_1/${cfg.cloud}/${resourceType}/upload`);
+        xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);bar.style.width=p+'%';pct.textContent=p+'%';}};
+        xhr.onload=()=>resolve(JSON.parse(xhr.responseText));
+        xhr.onerror=()=>reject(new Error('Erro de rede'));
+        xhr.send(fd);
+      });
+      if(res.error) throw new Error(res.error.message);
+      await db.collection('signage_media').add({
+        nome:file.name, url:res.secure_url, public_id:res.public_id,
+        tipo:resourceType==='video'?'video':'imagem',
+        created_at:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }catch(e){ toast('Erro ao enviar '+file.name+': '+e.message,'❌'); }
+  }
+  setTimeout(()=>prog.classList.remove('show'),600);
+  await loadMedia();
+  toast(files.length+' arquivo(s) enviado(s)!','✅');
+}
+
+async function delMedia(docId){
+  if(!confirm('Remover da biblioteca?'))return;
+  await db.collection('signage_media').doc(docId).delete();
+  await loadMedia(); toast('Removido','✅');
+}
+
+function renderMediaPicker(){
+  const c=document.getElementById('mpicker');
+  if(!S.media.length){c.innerHTML='<div style="grid-column:1/-1;padding:12px;text-align:center;font-size:13px;color:var(--mut);">Envie arquivos na aba Mídia primeiro.</div>';return;}
+  c.innerHTML=S.media.map(f=>`
+    <div class="mpick-item" onclick="pickMedia('${f.url}','${f.tipo}',this)">
+      <div class="pt">${f.tipo==='imagem'?`<img src="${f.url}">`:'<span style="font-size:18px;">🎬</span>'}</div>
+      <div class="pn">${f.nome}</div>
+    </div>`).join('');
+}
+
+function pickMedia(url,tipo,el){
+  document.getElementById('it-url').value=url;
+  document.getElementById('it-tipo').value=tipo;
+  togDur();
+  document.querySelectorAll('.mpick-item').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+/* ═══ DASHBOARD ═══ */
+function renderDash(){
+  document.getElementById('st-tvs').textContent=S.devices.length;
+  document.getElementById('st-on').textContent=S.devices.filter(isOnline).length;
+  document.getElementById('st-pl').textContent=S.playlists.length;
+  const plMap=Object.fromEntries(S.playlists.map(p=>[p.id,p.nome]));
+  const c=document.getElementById('dash-tv');
+  if(!S.devices.length){c.innerHTML='<div class="empty"><p>Nenhum dispositivo cadastrado ainda</p></div>';return;}
+  c.innerHTML=`<table><thead><tr><th>TV</th><th>Unidade</th><th>Status</th><th>Playlist</th><th>Ping</th></tr></thead><tbody>
+    ${S.devices.map(d=>`<tr>
+      <td style="font-weight:500;">${d.nome}</td>
+      <td style="color:var(--mut);">${d.unidade}</td>
+      <td><span class="badge ${isOnline(d)?'bon':'boff'}"><span class="dot"></span>${isOnline(d)?'Online':'Offline'}</span></td>
+      <td>${d.playlist_id&&plMap[d.playlist_id]?`<span class="tag tg">${plMap[d.playlist_id]}</span>`:'—'}</td>
+      <td style="font-size:12px;color:var(--mut);">${d.ultimo_ping?ago(d.ultimo_ping.toMillis()):'—'}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+/* ═══ CONFIG ═══ */
+function savePUrl(){cfg.purl=document.getElementById('cfg-purl').value.trim();localStorage.setItem('fb_purl',cfg.purl);toast('URL salva','✅');}
+function doReset(){if(!confirm('Desconectar?'))return;['fb_apikey','fb_proj','cl_cloud','cl_preset','fb_purl'].forEach(k=>localStorage.removeItem(k));location.reload();}
+
+/* ═══ UTILS ═══ */
+const ua=document.getElementById('uparea');
+ua.addEventListener('dragover',e=>{e.preventDefault();ua.classList.add('dov');});
+ua.addEventListener('dragleave',()=>ua.classList.remove('dov'));
+ua.addEventListener('drop',e=>{e.preventDefault();ua.classList.remove('dov');doUpload(e.dataTransfer.files);});
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.add('hidden');}));
+function om(id){document.getElementById(id).classList.remove('hidden');}
+function cm(id){document.getElementById(id).classList.add('hidden');}
+function toast(msg,ico='✅'){document.querySelector('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.innerHTML=`<span>${ico}</span><span>${msg}</span>`;document.body.appendChild(el);setTimeout(()=>el.remove(),3000);}
+function copyT(txt){navigator.clipboard.writeText(txt).then(()=>toast('Copiado!','📋'));}
+function ago(ms){const s=Math.floor((Date.now()-ms)/1000);if(s<60)return'há '+s+'s';if(s<3600)return'há '+Math.floor(s/60)+'min';if(s<86400)return'há '+Math.floor(s/3600)+'h';return'há '+Math.floor(s/86400)+'d';}
+</script>
+</body>
+</html>
